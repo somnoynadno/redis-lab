@@ -7,11 +7,13 @@ DB laboratory work
 1. Install and run redis
 
 ```$ sudo apt-get install redis```
+
 ```$ redis-server```
 
 2. Clone this repo
 
 ```$ git clone https://github.com/somnoynadno/redis-lab```
+
 ```$ cd redis-lab```
 
 3. Install python requirements

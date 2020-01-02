@@ -45,12 +45,12 @@
           </tr>
         </thead>
         <tbody>
-        {% for item in items %}
+        {% for i, item in enumerate(items) %}
           <tr>
-            <th scope="row">{{item[0]}}</th>
-            <td>{{item[1].decode()}}</td>
-            <td>{{item[2].decode()}}</td>
-            <td>{{item[3].decode()}}</td>
+            <th scope="row">{{i+1}}</th>
+            <td>{{item[b'patient_ID'].decode()}}</td>
+            <td>{{item[b'type'].decode()}}</td>
+            <td>{{item[b'information'].decode()}}</td>
           </tr>
         {% end %}
         </tbody>

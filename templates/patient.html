@@ -50,13 +50,13 @@
           </tr>
         </thead>
         <tbody>
-        {% for item in items %}
+        {% for i, item in enumerate(items) %}
           <tr>
-            <th scope="row">{{item[0]}}</th>
-            <td>{{item[1].decode()}}</td>
-            <td>{{item[2].decode()}}</td>
-            <td>{{item[3].decode()}}</td>
-            <td>{{item[4].decode()}}</td>
+            <th scope="row">{{i+1}}</th>
+            <td>{{item[b'surname'].decode()}}</td>
+            <td>{{item[b'born_date'].decode()}}</td>
+            <td>{{item[b'sex'].decode()}}</td>
+            <td>{{item[b'mpn'].decode()}}</td>
           </tr>
         {% end %}
         </tbody>
