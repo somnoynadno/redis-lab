@@ -44,7 +44,7 @@ class HospitalHandler(tornado.web.RequestHandler):
             self.write("Hospital name and address required")
             return
 
-        logging.info(name + ' ' + address + ' ' + beds_number + ' ' + phone)
+        logging.debug(name + ' ' + address + ' ' + beds_number + ' ' + phone)
 
         try:
             ID = r.get("hospital:autoID").decode()
@@ -86,26 +86,37 @@ class DoctorHandler(tornado.web.RequestHandler):
     def post(self):
         surname = self.get_argument('surname')
         profession = self.get_argument('profession')
+        hospital_ID = self.get_argument('hospital_ID')
 
         if not surname or not profession:
             self.set_status(400)
             self.write("Surname and profession required")
             return
 
-        logging.info(surname + ' ' + profession)
+        logging.debug(surname + ' ' + profession)
 
         try:
             ID = r.get("doctor:autoID").decode()
 
+            if hospital_ID:
+                # check that hospital exist
+                hospital = r.hgetall("hospital:" + hospital_ID)
+
+                if not hospital:
+                    self.set_status(400)
+                    self.write("No hospital with such ID")
+                    return
+
             a  = r.hset("doctor:" + ID, "surname", surname)
             a += r.hset("doctor:" + ID, "profession", profession)
+            a += r.hset("doctor:" + ID, "hospital_ID", hospital_ID)
 
             r.incr("doctor:autoID")
         except redis.exceptions.ConnectionError:
             self.set_status(400)
             self.write("Redis connection refused")
         else:
-            if (a != 2):
+            if (a != 3):
                 self.set_status(500)
                 self.write("Something went terribly wrong")
             else:
@@ -146,7 +157,7 @@ class PatientHandler(tornado.web.RequestHandler):
             self.write("Sex must be 'M' or 'F'")
             return
 
-        logging.info(surname + ' ' + born_date + ' ' + sex + ' ' + mpn)
+        logging.debug(surname + ' ' + born_date + ' ' + sex + ' ' + mpn)
 
         try:
             ID = r.get("patient:autoID").decode()
@@ -195,17 +206,17 @@ class DiagnosisHandler(tornado.web.RequestHandler):
             self.write("Patiend ID and diagnosis type required")
             return
 
-        patient = r.hgetall("patient:" + patient_ID)
-
-        if not patient:
-            self.set_status(400)
-            self.write("No patient with such ID")
-            return
-
-        logging.info(patient_ID + ' ' + diagnosis_type + ' ' + information)
+        logging.debug(patient_ID + ' ' + diagnosis_type + ' ' + information)
 
         try:
             ID = r.get("diagnosis:autoID").decode()
+
+            patient = r.hgetall("patient:" + patient_ID)
+
+            if not patient:
+                self.set_status(400)
+                self.write("No patient with such ID")
+                return
 
             a  = r.hset("diagnosis:" + ID, "patient_ID", patient_ID)
             a += r.hset("diagnosis:" + ID, "type", diagnosis_type)
@@ -221,6 +232,52 @@ class DiagnosisHandler(tornado.web.RequestHandler):
                 self.write("Something went terribly wrong")
             else:
                 self.write('OK: ID ' + ID + " for patient " + patient[b'surname'].decode())
+
+
+class DoctorPatientHandler(tornado.web.RequestHandler):
+    def get(self):
+        items = {}
+        try:
+            ID = r.get("doctor:autoID").decode()
+
+            for i in range(int(ID)):
+                result = r.smembers("doctor-patient:" + str(i))
+                if result:
+                    items[i] = result
+
+        except redis.exceptions.ConnectionError:
+            self.set_status(400)
+            self.write("Redis connection refused")
+        else:
+            self.render('templates/doctor-patient.html', items=items)
+
+    def post(self):
+        doctor_ID = self.get_argument('doctor_ID')
+        patient_ID = self.get_argument('patient_ID')
+        
+        if not doctor_ID or not patient_ID:
+            self.set_status(400)
+            self.write("ID required")
+            return
+
+        logging.debug(doctor_ID + ' ' + patient_ID)
+
+        try:
+            patient = r.hgetall("patient:" + patient_ID)
+            doctor = r.hgetall("doctor:" + doctor_ID)
+
+            if not patient or not doctor:
+                self.set_status(400)
+                self.write("No such ID for doctor or patient")
+                return
+
+            r.sadd("doctor-patient:" + doctor_ID, patient_ID)
+
+        except redis.exceptions.ConnectionError:
+            self.set_status(400)
+            self.write("Redis connection refused")
+        else:
+            self.write("OK: doctor ID: " + doctor_ID + ", patient ID: " + patient_ID)
 
 
 def init_db():
@@ -240,7 +297,8 @@ def make_app():
         (r"/hospital", HospitalHandler),
         (r"/doctor", DoctorHandler),
         (r"/patient", PatientHandler),
-        (r"/diagnosis", DiagnosisHandler)
+        (r"/diagnosis", DiagnosisHandler),
+        (r"/doctor-patient", DoctorPatientHandler)
     ], autoreload=True, debug=True, compiled_template_cache=False, serve_traceback=True)
 
 

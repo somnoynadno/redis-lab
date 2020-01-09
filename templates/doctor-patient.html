@@ -14,21 +14,17 @@
     <div class="container">
       <div class="row justify-content-center mt-2">
         <div class="col text-center">
-          <h1>Doctor</h1>
+          <h1>Doctor - Patient</h1>
         </div>
       </div>
       <form class="row align-items-center" method="post">
         <div class="form-group col">
-          <label for="surname">Surname</label>
-          <input type="text" class="form-control" id="surname" name="surname" placeholder="Enter surname" required>
+          <label for="doctor_ID">Doctor ID</label>
+          <input type="text" class="form-control" id="doctor_ID" name="doctor_ID" placeholder="Enter doctor ID" required>
         </div>
         <div class="form-group col">
-          <label for="profession">Profession</label>
-          <input type="text" class="form-control" id="profession" name="profession" placeholder="Enter profession" required>
-        </div>
-        <div class="form-group col">
-          <label for="hospital_ID">Hospital ID</label>
-          <input type="text" class="form-control" id="hospital_ID" name="hospital_ID" placeholder="Enter hospital ID">
+          <label for="patient_ID">Patient ID</label>
+          <input type="text" class="form-control" id="patient_ID" name="patient_ID" placeholder="Enter patient ID" required>
         </div>
         <div class="col">
           <button type="reset" class="btn btn-secondary">Clear</button>
@@ -38,20 +34,18 @@
       <table class="table mt-2">
         <thead>
           <tr>
-            <th scope="col">#</th>
-            <th scope="col">Surname</th>
-            <th scope="col">Profession</th>
-            <th scope="col">Hospital ID</th>
+            <th scope="col">Doctor ID</th>
+            <th scope="col">Patient ID</th>
           </tr>
         </thead>
         <tbody>
-        {% for i, item in enumerate(items) %}
-          <tr>
-            <th scope="row">{{i+1}}</th>
-            <td>{{item[b'surname'].decode()}}</td>
-            <td>{{item[b'profession'].decode()}}</td>
-            <td>{{item[b'hospital_ID'].decode()}}</td>
-          </tr>
+        {% for key, values in items.items() %}
+          {% for value in values %}
+            <tr>
+              <td>{{key}}</td>
+              <td>{{value.decode()}}</td>
+            </tr>
+          {% end %}
         {% end %}
         </tbody>
       </table>
