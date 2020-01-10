@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import os
 import redis
 import tornado.ioloop
 import tornado.web
@@ -8,7 +9,8 @@ import tornado.web
 from tornado.options import parse_command_line
 
 PORT = 8888
-r = redis.StrictRedis(host='localhost', port=6379, db=0)
+r = redis.StrictRedis(host=os.environ.get("REDIS_HOST", "localhost"), 
+    port=int(os.environ.get("REDIS_PORT", "6379")), db=0)
 
 
 class MainHandler(tornado.web.RequestHandler):
